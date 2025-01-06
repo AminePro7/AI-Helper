@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, make_response
 from flask_cors import CORS
 import requests
 import sqlite3
@@ -8,18 +8,19 @@ from urllib.parse import urljoin
 import os
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": ["http://localhost:3000", 
-                   "https://ai-helper-frontend.vercel.app",
-                   "https://ai-helper-frontend-k0010fpsn-amx72001-gmailcoms-projects.vercel.app"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
 
-@app.route('/')
+# Remove the CORS instance and handle CORS manually
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+@app.route('/', methods=['GET', 'OPTIONS'])
 def home():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     return jsonify({
         "message": "AI Helper API is running",
         "status": "ok",
@@ -69,8 +70,10 @@ def init_db():
 init_db()
 
 # Subject CRUD operations
-@app.route('/subjects', methods=['GET'])
+@app.route('/subjects', methods=['GET', 'OPTIONS'])
 def get_subjects():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
@@ -79,8 +82,10 @@ def get_subjects():
     conn.close()
     return jsonify(subjects)
 
-@app.route('/subjects', methods=['POST'])
+@app.route('/subjects', methods=['POST', 'OPTIONS'])
 def add_subject():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     data = request.json
     name = data.get('name')
     
@@ -100,8 +105,10 @@ def add_subject():
         conn.close()
         return jsonify({'error': 'Subject already exists'}), 409
 
-@app.route('/subjects/<int:subject_id>', methods=['DELETE'])
+@app.route('/subjects/<int:subject_id>', methods=['DELETE', 'OPTIONS'])
 def delete_subject(subject_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
@@ -112,8 +119,10 @@ def delete_subject(subject_id):
     return '', 204
 
 # Todo CRUD operations
-@app.route('/todos', methods=['GET'])
+@app.route('/todos', methods=['GET', 'OPTIONS'])
 def get_todos():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     subject_id = request.args.get('subject_id')
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
     conn = sqlite3.connect(db_path)
@@ -151,8 +160,10 @@ def get_todos():
     conn.close()
     return jsonify(todos)
 
-@app.route('/todos', methods=['POST'])
+@app.route('/todos', methods=['POST', 'OPTIONS'])
 def add_todo():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     data = request.json
     required_fields = ['subject_id', 'title', 'priority']
     
@@ -203,8 +214,10 @@ def add_todo():
     conn.close()
     return jsonify(todo), 201
 
-@app.route('/todos/<int:todo_id>', methods=['PUT'])
+@app.route('/todos/<int:todo_id>', methods=['PUT', 'OPTIONS'])
 def update_todo(todo_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     data = request.json
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
     conn = sqlite3.connect(db_path)
@@ -252,8 +265,10 @@ def update_todo(todo_id):
     conn.close()
     return jsonify(todo)
 
-@app.route('/todos/<int:todo_id>', methods=['DELETE'])
+@app.route('/todos/<int:todo_id>', methods=['DELETE', 'OPTIONS'])
 def delete_todo(todo_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
@@ -265,7 +280,7 @@ def delete_todo(todo_id):
 @app.route('/translate', methods=['POST', 'OPTIONS'])
 def translate():
     if request.method == 'OPTIONS':
-        return '', 204
+        return make_response('', 204)
         
     data = request.json
     text = data.get('text')
@@ -307,7 +322,7 @@ def translate():
 @app.route('/explain', methods=['POST', 'OPTIONS'])
 def explain_concept():
     if request.method == 'OPTIONS':
-        return '', 204
+        return make_response('', 204)
         
     data = request.json
     concept = data.get('concept')
@@ -353,7 +368,7 @@ def explain_concept():
 @app.route('/generate-presentation', methods=['POST', 'OPTIONS'])
 def generate_presentation():
     if request.method == 'OPTIONS':
-        return '', 204
+        return make_response('', 204)
         
     data = request.json
     topic = data.get('topic')
@@ -425,7 +440,7 @@ def generate_presentation():
 @app.route('/generate-todos', methods=['POST', 'OPTIONS'])
 def generate_todos():
     if request.method == 'OPTIONS':
-        return '', 204
+        return make_response('', 204)
         
     data = request.json
     subjects = data.get('subjects', [])
@@ -487,8 +502,10 @@ def generate_todos():
         return jsonify({'error': str(e)}), 500
 
 # Educational resources endpoints
-@app.route('/api/resources/search', methods=['GET'])
+@app.route('/api/resources/search', methods=['GET', 'OPTIONS'])
 def search_resources():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     website = request.args.get('website')
     query = request.args.get('query', '')
     level = request.args.get('level', '')
@@ -580,8 +597,10 @@ def search_resources():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/resources/download', methods=['GET'])
+@app.route('/api/resources/download', methods=['GET', 'OPTIONS'])
 def download_resource():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
     url = request.args.get('url')
     if not url:
         return jsonify({'error': 'URL is required'}), 400
