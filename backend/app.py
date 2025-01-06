@@ -597,7 +597,7 @@ def download_resource():
     except requests.exceptions.RequestException as e:
         return jsonify({'error': str(e)}), 500
 
-GEMINI_API_KEY = "AIzaSyDW9ZqpYq4J5rRlL0a-GbKhVWw9zguw7oU"
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDW9ZqpYq4J5rRlL0a-GbKhVWw9zguw7oU')
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 if __name__ == '__main__':
