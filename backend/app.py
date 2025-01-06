@@ -16,6 +16,21 @@ CORS(app, resources={
     }
 })
 
+@app.route('/')
+def home():
+    return jsonify({
+        "message": "AI Helper API is running",
+        "status": "ok",
+        "endpoints": [
+            "/translate",
+            "/explain",
+            "/generate-presentation",
+            "/generate-todos",
+            "/todos",
+            "/subjects"
+        ]
+    })
+
 def init_db():
     conn = sqlite3.connect('todos.db')
     c = conn.cursor()
