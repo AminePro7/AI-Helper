@@ -5,11 +5,12 @@ import sqlite3
 from datetime import datetime
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+import os
 
 app = Flask(__name__)
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000"],
+        "origins": ["http://localhost:3000", "https://ai-helper-frontend.vercel.app"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -585,4 +586,5 @@ GEMINI_API_KEY = "AIzaSyDW9ZqpYq4J5rRlL0a-GbKhVWw9zguw7oU"
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
