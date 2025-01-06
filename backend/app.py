@@ -10,7 +10,9 @@ import os
 app = Flask(__name__)
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000", "https://ai-helper-frontend.vercel.app"],
+        "origins": ["http://localhost:3000", 
+                   "https://ai-helper-frontend.vercel.app",
+                   "https://ai-helper-frontend-k0010fpsn-amx72001-gmailcoms-projects.vercel.app"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -32,7 +34,8 @@ def home():
     })
 
 def init_db():
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
     # Create subjects table
@@ -68,7 +71,8 @@ init_db()
 # Subject CRUD operations
 @app.route('/subjects', methods=['GET'])
 def get_subjects():
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute('SELECT * FROM subjects ORDER BY name')
     subjects = [{'id': row[0], 'name': row[1], 'created_at': row[2]} for row in c.fetchall()]
@@ -83,7 +87,8 @@ def add_subject():
     if not name:
         return jsonify({'error': 'Subject name is required'}), 400
         
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     try:
         c.execute('INSERT INTO subjects (name) VALUES (?)', (name,))
@@ -97,7 +102,8 @@ def add_subject():
 
 @app.route('/subjects/<int:subject_id>', methods=['DELETE'])
 def delete_subject(subject_id):
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute('DELETE FROM todo_lists WHERE subject_id = ?', (subject_id,))
     c.execute('DELETE FROM subjects WHERE id = ?', (subject_id,))
@@ -109,7 +115,8 @@ def delete_subject(subject_id):
 @app.route('/todos', methods=['GET'])
 def get_todos():
     subject_id = request.args.get('subject_id')
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
     if subject_id:
@@ -152,7 +159,8 @@ def add_todo():
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing required fields'}), 400
         
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
     c.execute('''
@@ -198,7 +206,8 @@ def add_todo():
 @app.route('/todos/<int:todo_id>', methods=['PUT'])
 def update_todo(todo_id):
     data = request.json
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
     update_fields = []
@@ -245,7 +254,8 @@ def update_todo(todo_id):
 
 @app.route('/todos/<int:todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
-    conn = sqlite3.connect('todos.db')
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todos.db')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute('DELETE FROM todo_lists WHERE id = ?', (todo_id,))
     conn.commit()
